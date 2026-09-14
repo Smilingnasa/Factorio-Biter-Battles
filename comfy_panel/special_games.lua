@@ -17,7 +17,9 @@ local valid_special_games = {
     mixed_ore_map = require('comfy_panel.special_games.mixed_ore_map'),
     disable_sciences = require('comfy_panel.special_games.disable_sciences'),
     send_to_external_server = require('comfy_panel.special_games.send_to_external_server'),
+    -- Skill Draft is an alternative to the existing legacy Captain mode.
     captain = require('comfy_panel.special_games.captain'),
+    captains_skill_draft = require('comfy_panel.special_games.captains_skill_draft'),
     threat_farm_threshold = require('comfy_panel.special_games.threat_farm_threshold'),
     special_combo = require('comfy_panel.special_games.mk2_fordeka'),
     --[[
@@ -33,6 +35,7 @@ local valid_special_games = {
 local function clear_gui_specials()
     local captain_event = require('comfy_panel.special_games.captain')
     captain_event.clear_gui_special()
+    require('comfy_panel.special_games.captains_skill_draft').clear_gui_special()
 end
 
 function Public.reset_special_games()
@@ -43,6 +46,7 @@ function Public.reset_special_games()
     clear_gui_specials()
     local captain_event = require('comfy_panel.special_games.captain')
     captain_event.reset_special_games()
+    require('comfy_panel.special_games.captains_skill_draft').reset_special_games()
 end
 
 local create_special_games_panel = function(player, frame)
@@ -52,19 +56,35 @@ local create_special_games_panel = function(player, frame)
     sp.style.vertically_squashable = true
     sp.style.padding = 2
     for k, v in pairs(valid_special_games) do
-        local a = sp.add({ type = 'frame' })
-        a.style.horizontally_stretchable = true
-        local table = a.add({ name = k, type = 'table', column_count = 3, draw_vertical_lines = true })
-        table.add(v.name).style.width = 110
-        local config = table.add({ name = k .. '_config', type = 'flow', direction = 'horizontal' })
-        config.style.horizontally_stretchable = true
-        config.style.left_padding = 3
-        for _, i in ipairs(v.config) do
-            config.add(i)
-            config[i.name].style.width = i.width
+        -- Skill Draft is an alternative Captain game, not a second selector row.
+        if k ~= 'captains_skill_draft' then
+            local a = sp.add({ type = 'frame' })
+            a.style.horizontally_stretchable = true
+            local table = a.add({ name = k, type = 'table', column_count = 3, draw_vertical_lines = true })
+            if k == 'captain' then
+                table.add({ type = 'label', caption = 'Captain game' }).style.width = 110
+            else
+                table.add(v.name).style.width = 110
+            end
+            local config = table.add({ name = k .. '_config', type = 'flow', direction = 'horizontal' })
+            config.style.horizontally_stretchable = true
+            config.style.left_padding = 3
+            if k == 'captain' then
+                local selector = config.add({
+                    type = 'drop-down',
+                    name = 'captain_game_mode_selector',
+                    items = { 'Legacy Captain event', 'Captains Skill Draft' },
+                    selected_index = 1,
+                })
+                selector.style.minimal_width = 190
+            end
+            for _, i in ipairs(v.config) do
+                config.add(i)
+                config[i.name].style.width = i.width
+            end
+            table.add({ name = v.button.name, type = v.button.type, caption = v.button.caption })
+            table[k .. '_config'].style.vertical_align = 'center'
         end
-        table.add({ name = v.button.name, type = v.button.type, caption = v.button.caption })
-        table[k .. '_config'].style.vertical_align = 'center'
     end
 end
 
@@ -117,7 +137,15 @@ local function on_gui_click(event)
 
     if element.name == 'confirm' or element.name == 'cancel' then
         if element.name == 'confirm' then
-            valid_special_games[special_game_gui.name].generate(config, player)
+            if
+                special_game_gui.name == 'captain'
+                and config.captain_game_mode_selector
+                and config.captain_game_mode_selector.selected_index == 2
+            then
+                valid_special_games.captains_skill_draft.generate(config, player)
+            else
+                valid_special_games[special_game_gui.name].generate(config, player)
+            end
         end
 
         if not element.valid then
