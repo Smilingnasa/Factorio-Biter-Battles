@@ -129,11 +129,7 @@ local function on_gui_click(event)
 
     if element.name == 'confirm' or element.name == 'cancel' then
         if element.name == 'confirm' then
-            if special_game_gui.name == 'captain' and config.captain_game_mode_selector.selected_index == 2 then
-                Captain_skill_draft.generate(config, player)
-            else
-                valid_special_games[special_game_gui.name].generate(config, player)
-            end
+            valid_special_games[special_game_gui.name].generate(config, player)
         end
 
         if not element.valid then
