@@ -1536,6 +1536,22 @@ function Public.generate(config, player)
     return activate(player, nil, nil, false, nil)
 end
 
+-- Keep the live Special games confirm path unchanged. The selector dispatches
+-- through the legacy Captain module, and this wrapper diverts only the new
+-- Skill Draft selection while preserving the legacy mode byte-for-byte.
+local Captain_event = require('comfy_panel.special_games.captain')
+local legacy_captain_generate = Captain_event.generate
+if not Captain_event.captains_skill_draft_dispatch then
+    Captain_event.captains_skill_draft_dispatch = true
+    Captain_event.generate = function(config, player)
+        local selector = config and config.captain_game_mode_selector
+        if selector and selector.valid and selector.selected_index == 2 then
+            return Public.generate(config, player)
+        end
+        return legacy_captain_generate(config, player)
+    end
+end
+
 function Public.start_test(player)
     if not player or not player.valid or not player.admin then
         return false
