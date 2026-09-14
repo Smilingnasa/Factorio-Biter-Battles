@@ -1,9 +1,9 @@
 {
-  "name": "captains-skill-draft",
-  "version": "0.1.0",
-  "title": "Captains Skill Draft",
+  "name": "Free Biter Battles",
+  "version": "5.0.0",
+  "title": "Free Biter Battles",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0"],
-  "description": "Biter Battles with a skill-based captain draft, seeded leaderboard, role selection, and transparent results."
+  "description": "Free Biter Battles is a community managed version of Comfy's BiterBattles scenario."
 }
 
